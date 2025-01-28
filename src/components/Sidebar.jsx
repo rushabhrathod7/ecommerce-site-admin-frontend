@@ -1,5 +1,4 @@
-// components/Sidebar/Sidebar.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,6 +14,18 @@ const Sidebar = () => {
   const location = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
+  useEffect(() => {
+    const handleKeyPress = (e) => {
+      if (e.ctrlKey && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        setIsCollapsed((prev) => !prev);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyPress);
+    return () => window.removeEventListener("keydown", handleKeyPress);
+  }, []);
+
   const menuItems = [
     {
       title: "Dashboard",
@@ -29,7 +40,7 @@ const Sidebar = () => {
     {
       title: "Products",
       icon: <ShoppingCart size={20} />,
-      path: "/admin/products",
+      path: "/products",
     },
     {
       title: "Analytics",
@@ -45,51 +56,71 @@ const Sidebar = () => {
 
   return (
     <aside
-      className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 ease-in-out
+      className={`fixed top-0 left-0 z-40 h-screen transition-all duration-300 
         ${isCollapsed ? "w-20" : "w-64"}
-        bg-gradient-to-b from-gray-800 to-gray-900 text-gray-100
-        border-r border-gray-700/50 shadow-xl`}
+        bg-gray-50 dark:bg-gray-900
+        shadow-[1px_0_5px_0_rgba(0,0,0,0.05)]
+        dark:shadow-[1px_0_5px_0_rgba(0,0,0,0.3)]`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-gray-700/50">
+      <div className="flex items-center justify-between h-16 px-4">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <span className="text-xl font-semibold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="text-xl font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
               Admin
             </span>
           </div>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className={`p-2 rounded-lg hover:bg-gray-700/50 transition-colors
+          className={`p-2 rounded-xl bg-gray-50 dark:bg-gray-900
+            hover:bg-gray-100 dark:hover:bg-gray-800
+            active:bg-gray-200 dark:active:bg-gray-700
+            transition-all duration-200
             ${isCollapsed ? "w-full flex justify-center" : ""}`}
+          title="Toggle sidebar (Ctrl + B)"
         >
-          <Menu size={20} />
+          <Menu size={20} className="text-gray-600 dark:text-gray-300" />
         </button>
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-1 p-3">
+      <nav className="flex flex-col gap-2 p-4">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200
+              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl
+                transition-all duration-200 group relative
+                ${isCollapsed ? "justify-center" : ""}
                 ${
                   isActive
-                    ? "bg-gray-700/60 text-white font-medium shadow-md"
-                    : "text-gray-300 hover:bg-gray-700/30 hover:text-white"
-                }
-                ${isCollapsed ? "justify-center" : ""}`}
+                    ? "bg-violet-50 dark:bg-violet-900/10 text-violet-600 dark:text-violet-400"
+                    : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
             >
-              <div className={`${isActive ? "text-blue-400" : ""}`}>
+              <div
+                className={`transition-transform duration-200 group-hover:scale-110 ${
+                  isActive ? "text-violet-600 dark:text-violet-400" : ""
+                }`}
+              >
                 {item.icon}
               </div>
-              {!isCollapsed && <span className="text-sm">{item.title}</span>}
-              {!isCollapsed && isActive && (
-                <div className="absolute left-0 w-1 h-6 bg-blue-400 rounded-r-full"></div>
+
+              {!isCollapsed && (
+                <span
+                  className={`text-sm font-medium transition-all duration-200
+                  ${isActive ? "translate-x-1" : ""}
+                `}
+                >
+                  {item.title}
+                </span>
+              )}
+
+              {isActive && (
+                <div className="absolute inset-y-0 left-0 w-1 bg-violet-500 rounded-r-full" />
               )}
             </Link>
           );
@@ -97,15 +128,18 @@ const Sidebar = () => {
       </nav>
 
       {/* Footer/Logout */}
-      <div className="absolute bottom-0 left-0 right-0 p-3">
+      <div className="absolute bottom-0 left-0 right-0 p-4">
         <button
-          className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg
-            text-gray-300 hover:bg-gray-700/30 hover:text-white transition-colors
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+            text-gray-600 dark:text-gray-300 
+            hover:bg-gray-100 dark:hover:bg-gray-800
+            hover:text-red-600 dark:hover:text-red-400
+            transition-all duration-200
             ${isCollapsed ? "justify-center" : ""}`}
           onClick={() => console.log("Logout clicked")}
         >
           <LogOut size={20} />
-          {!isCollapsed && <span className="text-sm">Logout</span>}
+          {!isCollapsed && <span className="text-sm font-medium">Logout</span>}
         </button>
       </div>
     </aside>
