@@ -41,12 +41,12 @@ const Sidebar = () => {
     {
       title: "Dashboard",
       icon: <LayoutDashboard size={20} />,
-      path: "/admin/dashboard",
+      path: "/dashboard",
     },
     {
       title: "Users",
       icon: <Users size={20} />,
-      path: "/admin/users",
+      path: "/users",
     },
     {
       title: "Products",
@@ -56,12 +56,12 @@ const Sidebar = () => {
     {
       title: "Analytics",
       icon: <BarChart2 size={20} />,
-      path: "/admin/analytics",
+      path: "/analytics",
     },
     {
       title: "Settings",
       icon: <Settings size={20} />,
-      path: "/admin/settings",
+      path: "/settings",
     },
   ];
 
