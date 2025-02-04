@@ -66,7 +66,7 @@ const Sidebar = () => {
       <div className="flex items-center justify-between h-16 px-4">
         {!isCollapsed && (
           <div className="flex items-center gap-2">
-            <span className="text-xl font-semibold bg-gradient-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
+            <span className="text-xl font-semibold bg-linear-to-r from-violet-500 to-fuchsia-500 bg-clip-text text-transparent">
               Admin
             </span>
           </div>
