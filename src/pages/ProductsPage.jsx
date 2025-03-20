@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, Plus, Filter, MoreVertical, Edit, Trash } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -33,132 +33,205 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
-// Sample categories and subcategories
-const categories = {
-  Electronics: ["Audio", "Computers", "Accessories"],
-  Sports: ["Footwear", "Apparel", "Equipment"],
-  Fashion: ["Men", "Women", "Kids"],
-};
+import { toast, Toaster } from "sonner";
+import axios from "axios";
 
-const ProductForm = React.memo(({ initialData, onSubmit, onClose, isEdit }) => {
-  const [formData, setFormData] = useState(initialData);
+const ProductForm = React.memo(
+  ({ initialData, onSubmit, onClose, isEdit, categories, subcategories }) => {
+    const [formData, setFormData] = useState(initialData);
+    const [availableSubcategories, setAvailableSubcategories] = useState([]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSubmit(formData);
-  };
-
-  const handleFieldChange = (field, value) => {
-    setFormData((prev) => {
-      if (field === "category") {
-        return { ...prev, category: value, subcategory: "" };
+    useEffect(() => {
+      if (formData.category && subcategories) {
+        const filtered = subcategories.filter(
+          (sub) => sub.category._id === formData.category
+        );
+        setAvailableSubcategories(filtered);
       }
-      return { ...prev, [field]: value };
-    });
-  };
+    }, [formData.category, subcategories]);
 
-  return (
-    <form onSubmit={handleSubmit}>
-      <div className="grid gap-4 py-4">
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="name" className="text-right">
-            Name
-          </Label>
-          <Input
-            id="name"
-            value={formData.name}
-            onChange={(e) => handleFieldChange("name", e.target.value)}
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="image" className="text-right">
-            Image URL
-          </Label>
-          <Input
-            id="image"
-            value={formData.image}
-            onChange={(e) => handleFieldChange("image", e.target.value)}
-            className="col-span-3"
-          />
-        </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="category" className="text-right">
-            Category
-          </Label>
-          <Select
-            value={formData.category}
-            onValueChange={(value) => handleFieldChange("category", value)}
-          >
-            <SelectTrigger className="col-span-3">
-              <SelectValue placeholder="Select category" />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(categories).map((category) => (
-                <SelectItem key={category} value={category}>
-                  {category}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {formData.category && (
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      onSubmit(formData);
+    };
+
+    const handleFieldChange = (field, value) => {
+      setFormData((prev) => {
+        if (field === "category") {
+          return { ...prev, category: value, subcategory: "" };
+        }
+        return { ...prev, [field]: value };
+      });
+    };
+
+    return (
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-4 py-4">
           <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="subcategory" className="text-right">
-              Subcategory
+            <Label htmlFor="name" className="text-right">
+              Name
+            </Label>
+            <Input
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleFieldChange("name", e.target.value)}
+              className="col-span-3"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="description" className="text-right">
+              Description
+            </Label>
+            <Input
+              id="description"
+              value={formData.description}
+              onChange={(e) => handleFieldChange("description", e.target.value)}
+              className="col-span-3"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="sku" className="text-right">
+              SKU
+            </Label>
+            <Input
+              id="sku"
+              value={formData.sku}
+              onChange={(e) => handleFieldChange("sku", e.target.value)}
+              className="col-span-3"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="images" className="text-right">
+              Image URL
+            </Label>
+            <Input
+              id="images"
+              value={formData.images?.[0] || ""}
+              onChange={(e) => handleFieldChange("images", [e.target.value])}
+              className="col-span-3"
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="category" className="text-right">
+              Category
             </Label>
             <Select
-              value={formData.subcategory}
-              onValueChange={(value) => handleFieldChange("subcategory", value)}
+              value={formData.category}
+              onValueChange={(value) => handleFieldChange("category", value)}
             >
               <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="Select subcategory" />
+                <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {categories[formData.category]?.map((subcategory) => (
-                  <SelectItem key={subcategory} value={subcategory}>
-                    {subcategory}
+                {categories?.map((category) => (
+                  <SelectItem key={category._id} value={category._id}>
+                    {category.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        )}
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="price" className="text-right">
-            Price
-          </Label>
-          <Input
-            id="price"
-            type="number"
-            value={formData.price}
-            onChange={(e) => handleFieldChange("price", e.target.value)}
-            className="col-span-3"
-          />
+          {formData.category && (
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="subcategory" className="text-right">
+                Subcategory
+              </Label>
+              <Select
+                value={formData.subcategory}
+                onValueChange={(value) =>
+                  handleFieldChange("subcategory", value)
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select subcategory" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableSubcategories.map((subcategory) => (
+                    <SelectItem key={subcategory._id} value={subcategory._id}>
+                      {subcategory.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="price" className="text-right">
+              Price
+            </Label>
+            <Input
+              id="price"
+              type="number"
+              value={formData.price}
+              onChange={(e) =>
+                handleFieldChange("price", Number(e.target.value))
+              }
+              className="col-span-3"
+              min="0"
+              step="0.01"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="stock" className="text-right">
+              Stock
+            </Label>
+            <Input
+              id="stock"
+              type="number"
+              value={formData.stock}
+              onChange={(e) =>
+                handleFieldChange("stock", Number(e.target.value))
+              }
+              className="col-span-3"
+              min="0"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-4 items-center gap-4">
+            <Label htmlFor="isAvailable" className="text-right">
+              Available
+            </Label>
+            <Select
+              value={formData.isAvailable.toString()}
+              onValueChange={(value) =>
+                handleFieldChange("isAvailable", value === "true")
+              }
+            >
+              <SelectTrigger className="col-span-3">
+                <SelectValue placeholder="Select availability" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Yes</SelectItem>
+                <SelectItem value="false">No</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="stock" className="text-right">
-            Stock
-          </Label>
-          <Input
-            id="stock"
-            type="number"
-            value={formData.stock}
-            onChange={(e) => handleFieldChange("stock", e.target.value)}
-            className="col-span-3"
-          />
-        </div>
-      </div>
-      <DialogFooter>
-        <Button type="button" variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit">{isEdit ? "Save Changes" : "Add Product"}</Button>
-      </DialogFooter>
-    </form>
-  );
-});
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            {isEdit ? "Save Changes" : "Add Product"}
+          </Button>
+        </DialogFooter>
+      </form>
+    );
+  }
+);
 
 ProductForm.displayName = "ProductForm";
 
@@ -179,103 +252,250 @@ const SearchInput = React.memo(({ value, onChange }) => {
 SearchInput.displayName = "SearchInput";
 
 const ProductsPage = () => {
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      image: "/api/placeholder/100/100",
-      category: "Electronics",
-      subcategory: "Audio",
-      price: 99.99,
-      stock: 45,
-      status: "In Stock",
-    },
-    {
-      id: 2,
-      name: "Running Shoes",
-      image: "/api/placeholder/100/100",
-      category: "Sports",
-      subcategory: "Footwear",
-      price: 79.99,
-      stock: 28,
-      status: "Low Stock",
-    },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [subcategories, setSubcategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [limit, setLimit] = useState(10);
+
+  // Sorting state
+  const [sortField, setSortField] = useState("-createdAt");
+
   const emptyProduct = {
     name: "",
-    image: "/api/placeholder/100/100",
+    description: "",
+    sku: "",
+    images: [""],
     category: "",
     subcategory: "",
     price: "",
     stock: "",
+    isAvailable: true,
   };
 
+  // Create axios instance
+  const api = axios.create({
+    baseURL: "http://localhost:5000/api",
+    timeout: 10000,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  // Fetch products
+  const fetchProducts = async (
+    page = 1,
+    limit = 10,
+    sort = "-createdAt",
+    search = ""
+  ) => {
+    setLoading(true);
+    try {
+      let url = `/products?page=${page}&limit=${limit}&sort=${sort}`;
+
+      if (search) {
+        url = `/products/search?q=${search}`;
+      }
+
+      const response = await api.get(url);
+      const data = response.data;
+
+      setProducts(data.data);
+      if (data.pagination) {
+        setCurrentPage(data.pagination.currentPage);
+        setTotalPages(data.pagination.totalPages);
+        setLimit(data.pagination.limit);
+      }
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to fetch products";
+      setError(errorMessage);
+      toast.error("Error", {
+        description: errorMessage,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch categories
+  const fetchCategories = async () => {
+    try {
+      const response = await api.get("/categories");
+      setCategories(response.data.data);
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to fetch categories";
+      toast.error("Error", {
+        description: errorMessage,
+      });
+    }
+  };
+
+  // Fetch subcategories
+  const fetchSubcategories = async () => {
+    try {
+      const response = await api.get("/subcategories");
+      setSubcategories(response.data.data);
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to fetch subcategories";
+      toast.error("Error", {
+        description: errorMessage,
+      });
+    }
+  };
+
+  // Initial data load
+  useEffect(() => {
+    const loadInitialData = async () => {
+      await Promise.all([
+        fetchProducts(currentPage, limit, sortField),
+        fetchCategories(),
+        fetchSubcategories(),
+      ]);
+    };
+
+    loadInitialData();
+  }, []);
+
+  // Handle search
   const handleSearch = (event) => {
     setSearchTerm(event.target.value);
   };
 
-  const filteredProducts = React.useMemo(() => {
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.subcategory.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [products, searchTerm]);
-
-  const handleAddProduct = (formData) => {
-    setProducts([
-      ...products,
-      { ...formData, id: products.length + 1, status: "In Stock" },
-    ]);
-    setIsAddModalOpen(false);
+  // Handle search submit
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    fetchProducts(1, limit, sortField, searchTerm);
   };
 
-  const handleEditProduct = (formData) => {
-    setProducts(
-      products.map((product) =>
-        product.id === selectedProduct.id
-          ? {
-              ...formData,
-              id: selectedProduct.id,
-              status: selectedProduct.status,
-            }
-          : product
-      )
-    );
-    setIsEditModalOpen(false);
+  // Handle page change
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    fetchProducts(page, limit, sortField, searchTerm);
   };
 
+  // Handle add product
+  const handleAddProduct = async (formData) => {
+    try {
+      const response = await api.post("/products", formData);
+
+      // Refetch the products to update the list
+      fetchProducts(currentPage, limit, sortField);
+
+      setIsAddModalOpen(false);
+
+      toast.success("Product Added", {
+        description: "Product added successfully",
+      });
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message || err.message || "Failed to add product";
+      toast.error("Error", {
+        description: errorMessage,
+      });
+    }
+  };
+
+  // Handle edit product
+  const handleEditProduct = async (formData) => {
+    try {
+      await api.put(`/products/${selectedProduct._id}`, formData);
+
+      // Refetch the products to update the list
+      fetchProducts(currentPage, limit, sortField);
+
+      setIsEditModalOpen(false);
+
+      toast.success("Product Updated", {
+        description: "Product updated successfully",
+      });
+    } catch (err) {
+      const errorMessage =
+        err.response?.data?.message ||
+        err.message ||
+        "Failed to update product";
+      toast.error("Error", {
+        description: errorMessage,
+      });
+    }
+  };
+
+  // Open edit modal
   const openEditModal = (product) => {
     setSelectedProduct(product);
     setIsEditModalOpen(true);
   };
 
-  const handleDeleteProduct = (productId) => {
-    setProducts(products.filter((product) => product.id !== productId));
+  // Handle delete product
+  const handleDeleteProduct = async (productId) => {
+    toast.promise(
+      async () => {
+        const confirmDelete = window.confirm(
+          "Are you sure you want to delete this product?"
+        );
+        if (!confirmDelete) {
+          throw new Error("Deletion cancelled");
+        }
+
+        await api.delete(`/products/${productId}`);
+
+        // Refetch the products to update the list
+        await fetchProducts(currentPage, limit, sortField);
+
+        return "Product deleted successfully";
+      },
+      {
+        loading: "Deleting product...",
+        success: (message) => ({
+          title: "Success",
+          description: message,
+        }),
+        error: (err) => ({
+          title: "Error",
+          description: err.message || "Failed to delete product",
+        }),
+      }
+    );
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "In Stock":
-        return "text-green-600";
-      case "Low Stock":
-        return "text-yellow-600";
-      case "Out of Stock":
-        return "text-red-600";
-      default:
-        return "text-gray-600";
+  // Get status text and color based on stock and availability
+  const getProductStatus = (product) => {
+    if (!product.isAvailable) {
+      return { text: "Unavailable", color: "text-red-600" };
     }
+
+    if (product.stock <= 0) {
+      return { text: "Out of Stock", color: "text-red-600" };
+    }
+
+    if (product.stock < 10) {
+      return { text: "Low Stock", color: "text-yellow-600" };
+    }
+
+    return { text: "In Stock", color: "text-green-600" };
   };
 
   return (
     <div className="p-6">
+      <Toaster position="top-right" richColors closeButton />
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Products</h1>
         <Button
@@ -290,77 +510,180 @@ const ProductsPage = () => {
       <Card>
         <CardHeader>
           <CardTitle>Product Management</CardTitle>
-          <div className="flex gap-4 mt-4">
+          <form onSubmit={handleSearchSubmit} className="flex gap-4 mt-4">
             <SearchInput value={searchTerm} onChange={handleSearch} />
-            <Button variant="outline">
-              <Filter className="w-4 h-4 mr-2" />
-              Filters
+            <Button type="submit" variant="secondary">
+              Search
             </Button>
-          </div>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setSearchTerm("");
+                fetchProducts(1, limit, sortField);
+              }}
+            >
+              <Filter className="w-4 h-4 mr-2" />
+              Reset
+            </Button>
+          </form>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Image</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Category</TableHead>
-                <TableHead>Subcategory</TableHead>
-                <TableHead>Price</TableHead>
-                <TableHead>Stock</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredProducts.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-12 h-12 object-cover rounded"
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{product.name}</TableCell>
-                  <TableCell>{product.category}</TableCell>
-                  <TableCell>{product.subcategory}</TableCell>
-                  <TableCell>${product.price}</TableCell>
-                  <TableCell>{product.stock}</TableCell>
-                  <TableCell>
-                    <span className={getStatusColor(product.status)}>
-                      {product.status}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => openEditModal(product)}
-                        >
-                          <Edit className="mr-2 h-4 w-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteProduct(product.id)}
-                        >
-                          <Trash className="mr-2 h-4 w-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          {loading ? (
+            <div className="text-center py-8">Loading products...</div>
+          ) : error ? (
+            <div className="text-center py-8 text-red-600">{error}</div>
+          ) : products.length === 0 ? (
+            <div className="text-center py-8">No products found</div>
+          ) : (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Image</TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Subcategory</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Stock</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => {
+                    const status = getProductStatus(product);
+                    return (
+                      <TableRow key={product._id}>
+                        <TableCell>
+                          {product.images && product.images.length > 0 ? (
+                            <img
+                              src={product.images[0]}
+                              alt={product.name}
+                              className="w-12 h-12 object-cover rounded"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "/api/placeholder/100/100";
+                              }}
+                            />
+                          ) : (
+                            <img
+                              src="/api/placeholder/100/100"
+                              alt="No image"
+                              className="w-12 h-12 object-cover rounded"
+                            />
+                          )}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {product.name}
+                        </TableCell>
+                        <TableCell>{product.category?.name || "—"}</TableCell>
+                        <TableCell>
+                          {product.subcategory?.name || "—"}
+                        </TableCell>
+                        <TableCell>${product.price.toFixed(2)}</TableCell>
+                        <TableCell>{product.stock}</TableCell>
+                        <TableCell>
+                          <span className={status.color}>{status.text}</span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" className="h-8 w-8 p-0">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => openEditModal(product)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDeleteProduct(product._id)}
+                              >
+                                <Trash className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+
+              {totalPages > 1 && (
+                <Pagination className="mt-6">
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious
+                        onClick={() =>
+                          handlePageChange(Math.max(1, currentPage - 1))
+                        }
+                        disabled={currentPage === 1}
+                      />
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        // Show first, last, current and 1 page on each side of current
+                        return (
+                          page === 1 ||
+                          page === totalPages ||
+                          Math.abs(page - currentPage) <= 1
+                        );
+                      })
+                      .map((page, index, array) => {
+                        // Add ellipsis if there are gaps
+                        if (index > 0 && array[index - 1] !== page - 1) {
+                          return (
+                            <React.Fragment key={`ellipsis-${page}`}>
+                              <PaginationItem>
+                                <span className="px-4">...</span>
+                              </PaginationItem>
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  onClick={() => handlePageChange(page)}
+                                  isActive={page === currentPage}
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            </React.Fragment>
+                          );
+                        }
+                        return (
+                          <PaginationItem key={page}>
+                            <PaginationLink
+                              onClick={() => handlePageChange(page)}
+                              isActive={page === currentPage}
+                            >
+                              {page}
+                            </PaginationLink>
+                          </PaginationItem>
+                        );
+                      })}
+
+                    <PaginationItem>
+                      <PaginationNext
+                        onClick={() =>
+                          handlePageChange(
+                            Math.min(totalPages, currentPage + 1)
+                          )
+                        }
+                        disabled={currentPage === totalPages}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              )}
+            </>
+          )}
         </CardContent>
       </Card>
 
@@ -374,6 +697,8 @@ const ProductsPage = () => {
             onSubmit={handleAddProduct}
             onClose={() => setIsAddModalOpen(false)}
             isEdit={false}
+            categories={categories}
+            subcategories={subcategories}
           />
         </DialogContent>
       </Dialog>
@@ -383,12 +708,16 @@ const ProductsPage = () => {
           <DialogHeader>
             <DialogTitle>Edit Product</DialogTitle>
           </DialogHeader>
-          <ProductForm
-            initialData={selectedProduct}
-            onSubmit={handleEditProduct}
-            onClose={() => setIsEditModalOpen(false)}
-            isEdit={true}
-          />
+          {selectedProduct && (
+            <ProductForm
+              initialData={selectedProduct}
+              onSubmit={handleEditProduct}
+              onClose={() => setIsEditModalOpen(false)}
+              isEdit={true}
+              categories={categories}
+              subcategories={subcategories}
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>

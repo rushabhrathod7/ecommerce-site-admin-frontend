@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Outlet, useLocation, Link } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -6,30 +6,21 @@ import {
   ShoppingCart,
   Settings,
   BarChart2,
-  LogOut,
-  Menu,
-  Tag,
   Layers,
-  MapPin,
+  CreditCard,
+  Star,
+  DollarSign,
+  Menu,
 } from "lucide-react";
-
-// Create context for sidebar state
-const SidebarContext = createContext();
-
-const useSidebar = () => {
-  const context = useContext(SidebarContext);
-  if (!context) {
-    throw new Error("useSidebar must be used within a SidebarProvider");
-  }
-  return context;
-};
+import Header from "./Header";
+import SidebarContext, { useSidebar } from "./SidebarContext";
 
 const Sidebar = () => {
   const location = useLocation();
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [expandedItem, setExpandedItem] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyPress = (e) => {
       if (e.ctrlKey && e.key.toLowerCase() === "b") {
         e.preventDefault();
@@ -49,12 +40,13 @@ const Sidebar = () => {
     {
       title: "Dashboard",
       icon: <LayoutDashboard size={20} />,
-      path: "/",
-    },
-    {
-      title: "Orders",
-      icon: <Users size={20} />,
-      path: "/orders",
+      path: "/dashboard",
+      submenu: [
+        { title: "Sales Statistics", path: "/dashboard/sales" },
+        { title: "Order Analytics", path: "/dashboard/orders" },
+        { title: "User Analytics", path: "/dashboard/users" },
+        { title: "Revenue Tracking", path: "/dashboard/revenue" },
+      ],
     },
     {
       title: "Products",
@@ -68,28 +60,58 @@ const Sidebar = () => {
       submenu: [
         { title: "Main Categories", path: "/categories/main" },
         { title: "Subcategories", path: "/categories/sub" },
-        { title: "Manage Hierarchy", path: "/categories/hierarchy" },
       ],
     },
     {
-      title: "POS",
-      icon: <MapPin size={20} />,
-      path: "/pos",
+      title: "Orders",
+      icon: <DollarSign size={20} />,
+      path: "/orders",
       submenu: [
-        { title: "Terminals", path: "/pos/terminals" },
-        { title: "Transactions", path: "/pos/transactions" },
-        { title: "Settings", path: "/pos/settings" },
+        { title: "All Orders", path: "/orders/all" },
+        { title: "Pending", path: "/orders/pending" },
+        { title: "Shipped", path: "/orders/shipped" },
+        { title: "Delivered", path: "/orders/delivered" },
       ],
     },
     {
-      title: "Customers",
+      title: "Users",
+      icon: <Users size={20} />,
+      path: "/users",
+    },
+    {
+      title: "Payments",
+      icon: <CreditCard size={20} />,
+      path: "/payments",
+      submenu: [
+        { title: "Transactions", path: "/payments/transactions" },
+        { title: "Refunds", path: "/payments/refunds" },
+      ],
+    },
+    {
+      title: "Reviews",
+      icon: <Star size={20} />,
+      path: "/reviews",
+    },
+    {
+      title: "Reports",
       icon: <BarChart2 size={20} />,
-      path: "/customers",
+      path: "/reports",
+      submenu: [
+        { title: "Sales Reports", path: "/reports/sales" },
+        { title: "Customer Reports", path: "/reports/customers" },
+        { title: "Product Reports", path: "/reports/products" },
+      ],
     },
     {
       title: "Settings",
       icon: <Settings size={20} />,
       path: "/settings",
+      submenu: [
+        { title: "Store Details", path: "/settings/store" },
+        { title: "Shipping", path: "/settings/shipping" },
+        { title: "Tax Rates", path: "/settings/tax" },
+        { title: "Admin Roles", path: "/settings/roles" },
+      ],
     },
   ];
 
@@ -124,7 +146,7 @@ const Sidebar = () => {
       </div>
 
       {/* Navigation */}
-      <nav className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[calc(100vh-8rem)]">
+      <nav className="flex flex-col gap-2 p-4 overflow-y-auto max-h-[calc(100vh-4rem)]">
         {menuItems.map((item) => {
           const isActive =
             location.pathname === item.path ||
@@ -223,22 +245,6 @@ const Sidebar = () => {
           );
         })}
       </nav>
-
-      {/* Footer/Logout */}
-      <div className="absolute bottom-0 left-0 right-0 p-4">
-        <button
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
-            text-gray-600 dark:text-gray-300 
-            hover:bg-gray-100 dark:hover:bg-gray-800
-            hover:text-red-600 dark:hover:text-red-400
-            transition-all duration-200
-            ${isCollapsed ? "justify-center" : ""}`}
-          onClick={() => console.log("Logout clicked")}
-        >
-          <LogOut size={20} />
-          {!isCollapsed && <span className="text-sm font-medium">Logout</span>}
-        </button>
-      </div>
     </aside>
   );
 };
@@ -250,8 +256,9 @@ const AdminSidebar = () => {
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
       <div className="flex min-h-screen bg-gray-100 dark:bg-gray-800">
         <Sidebar />
+        <Header />
         <main
-          className={`flex-1 p-8 transition-all duration-300
+          className={`flex-1 p-8 pt-24 transition-all duration-300
             ${isCollapsed ? "ml-20" : "ml-64"}`}
         >
           <Outlet />
