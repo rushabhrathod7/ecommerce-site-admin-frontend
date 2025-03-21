@@ -13,17 +13,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Eye, EyeOff, Lock, AlertTriangle } from "lucide-react";
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true,
-});
+import useAuthStore from "@/stores/authStore"; // Updated import path - adjust as needed
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
+  const { isLoading, error, clearError, resetPassword } = useAuthStore();
 
   const [formData, setFormData] = useState({
     password: "",
@@ -31,7 +27,6 @@ const ResetPassword = () => {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,34 +35,19 @@ const ResetPassword = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    clearError();
 
     if (formData.password !== formData.confirmPassword) {
       toast.error("Passwords don't match");
       return;
     }
 
-    setIsLoading(true);
-
     try {
-      // Note: The backend doesn't seem to have a reset password endpoint yet
-      // We'd need to implement this endpoint on the backend
-      // For now, we'll simulate a successful request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // In a real implementation, you'd use something like:
-      // await api.post('/auth/reset-password', {
-      //   token,
-      //   password: formData.password
-      // });
-
+      await resetPassword(token, formData.password);
       toast.success("Password reset successfully!");
       navigate("/signin");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to reset password";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
+      toast.error(error.message || "Failed to reset password");
     }
   };
 
@@ -184,6 +164,7 @@ const ResetPassword = () => {
                   </div>
                 </div>
               </div>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
               <div className="pt-2">
                 <Button
                   type="submit"

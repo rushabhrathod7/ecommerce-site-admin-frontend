@@ -88,7 +88,7 @@ const Header = () => {
                     <p className="text-sm font-semibold text-gray-700 dark:text-gray-200">
                       {admin?.name || "Admin User"}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                       {admin?.email || "admin@example.com"}
                     </p>
                   </div>

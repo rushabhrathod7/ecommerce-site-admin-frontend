@@ -13,39 +13,23 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { ArrowLeft, Mail } from "lucide-react";
-import axios from "axios";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials: true,
-});
+import useAuthStore from "@/stores/authStore"; // Updated import path - adjust as needed
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const { isLoading, error, clearError, forgotPassword } = useAuthStore();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
+    clearError();
 
     try {
-      // Note: The backend doesn't seem to have a forgot password endpoint yet
-      // We'd need to implement this endpoint on the backend
-      // For now, we'll simulate a successful request
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // In a real implementation, you'd use something like:
-      // await api.post('/auth/forgot-password', { email });
-
+      await forgotPassword(email);
       setIsSubmitted(true);
-      toast.success("Reset link sent to your email");
+      toast.success("Reset link sent to your email if it exists in our system");
     } catch (error) {
-      const errorMessage =
-        error.response?.data?.message || "Failed to send reset link";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
+      toast.error(error.message || "Failed to send reset link");
     }
   };
 
@@ -64,7 +48,8 @@ const ForgotPassword = () => {
                 Check Your Email
               </CardTitle>
               <CardDescription className="text-center text-gray-600">
-                We've sent a password reset link to {email}
+                If {email} exists in our system, we've sent a password reset
+                link
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6 flex flex-col items-center">
@@ -125,6 +110,7 @@ const ForgotPassword = () => {
                   />
                 </div>
               </div>
+              {error && <p className="text-red-500 text-sm">{error}</p>}
               <Button
                 type="submit"
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-md transition-colors"

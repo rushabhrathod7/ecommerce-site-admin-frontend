@@ -563,7 +563,7 @@ const ProductsPage = () => {
                               className="w-12 h-12 object-cover rounded"
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = "/api/placeholder/100/100";
+                                e.target.src = "https://placehold.co/100x400";
                               }}
                             />
                           ) : (
