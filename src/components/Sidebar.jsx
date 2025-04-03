@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Outlet, useLocation, Link } from "react-router-dom";
+import { Outlet, useLocation, Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Users,
@@ -17,6 +17,7 @@ import SidebarContext, { useSidebar } from "./SidebarContext";
 
 const Sidebar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { isCollapsed, setIsCollapsed } = useSidebar();
   const [expandedItem, setExpandedItem] = useState(null);
 
@@ -58,8 +59,8 @@ const Sidebar = () => {
       icon: <Layers size={20} />,
       path: "/categories",
       submenu: [
-        { title: "Main Categories", path: "/categories/main" },
-        { title: "Subcategories", path: "/categories/sub" },
+        { title: "Main Categories", path: "/categories" },
+        { title: "Subcategories", path: "/subcategories" },
       ],
     },
     {
@@ -159,7 +160,8 @@ const Sidebar = () => {
           return (
             <div key={item.path} className="flex flex-col">
               {/* Main menu item */}
-              <div
+              <Link
+                to={item.path}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl
                   transition-all duration-200 group relative cursor-pointer
                   ${isCollapsed ? "justify-center" : ""}
@@ -168,12 +170,10 @@ const Sidebar = () => {
                       ? "bg-violet-50 dark:bg-violet-900/10 text-violet-600 dark:text-violet-400"
                       : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
-                onClick={() => {
+                onClick={(e) => {
                   if (item.submenu && !isCollapsed) {
+                    e.preventDefault();
                     toggleExpandItem(item.title);
-                  } else if (!item.submenu) {
-                    // Navigate to the path if it's a direct link
-                    window.location.href = item.path;
                   }
                 }}
               >
@@ -217,7 +217,7 @@ const Sidebar = () => {
                 {isActive && (
                   <div className="absolute inset-y-0 left-0 w-1 bg-violet-500 rounded-r-full" />
                 )}
-              </div>
+              </Link>
 
               {/* Submenu items */}
               {!isCollapsed && item.submenu && isExpanded && (

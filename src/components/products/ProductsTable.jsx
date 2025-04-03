@@ -36,6 +36,28 @@ const ProductsTable = ({ products, onEdit, onDelete }) => {
     return { text: "In Stock", color: "text-green-600" };
   };
 
+  // Function to get image URL
+  const getImageUrl = (product) => {
+    if (!product.images || product.images.length === 0) {
+      return null;
+    }
+    
+    // Handle different image object formats
+    const firstImage = product.images[0];
+    
+    // If it's a simple string URL
+    if (typeof firstImage === 'string') {
+      return firstImage;
+    }
+    
+    // If it's an object with url property
+    if (firstImage.url) {
+      return firstImage.url;
+    }
+    
+    return null;
+  };
+
   return (
     <Table>
       <TableHeader>
@@ -53,25 +75,25 @@ const ProductsTable = ({ products, onEdit, onDelete }) => {
       <TableBody>
         {products.map((product) => {
           const status = getProductStatus(product);
+          const imageUrl = getImageUrl(product);
+          
           return (
             <TableRow key={product._id}>
               <TableCell>
-                {product.images && product.images.length > 0 ? (
+                {imageUrl ? (
                   <img
-                    src={product.images[0]}
+                    src={imageUrl}
                     alt={product.name}
                     className="w-12 h-12 object-cover rounded"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = "https://placehold.co/100x100";
+                      e.target.src = "/api/placeholder/100/100";
                     }}
                   />
                 ) : (
-                  <img
-                    src="/api/placeholder/100/100"
-                    alt="No image"
-                    className="w-12 h-12 object-cover rounded"
-                  />
+                  <div className="w-12 h-12 flex items-center justify-center bg-gray-100 rounded">
+                    <span className="text-gray-400 text-xs">No image</span>
+                  </div>
                 )}
               </TableCell>
               <TableCell className="font-medium">{product.name}</TableCell>

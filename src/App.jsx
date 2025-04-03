@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -13,6 +13,8 @@ import ProductsPage from "./pages/ProductsPage";
 import OrdersPage from "./pages/OrdersPage";
 import CustomersPage from "./pages/CustomersPage";
 import SettingsPage from "./pages/SettingsPage";
+import CategoriesPage from "./pages/CategoriesPage";
+import SubcategoriesPage from "./pages/SubcategoriesPage";
 import SignIn from "./pages/auth/SignIn";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
@@ -22,7 +24,15 @@ import AuthLayout from "./pages/auth/AuthLayout";
 
 // Protected route component using Zustand auth store
 const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuthStore();
+  const { isAuthenticated, isLoading, checkAuth } = useAuthStore();
+
+  // Check authentication status when component mounts
+  useEffect(() => {
+    // Verify auth status with backend
+    checkAuth().catch(error => {
+      console.error("Auth check failed:", error);
+    });
+  }, [checkAuth]);
 
   // If still loading, you could show a spinner here
   if (isLoading) {
@@ -60,6 +70,8 @@ function App() {
         >
           <Route index element={<HomePage />} />
           <Route path="/products" element={<ProductsPage />} />
+          <Route path="/categories" element={<CategoriesPage />} />
+          <Route path="/subcategories" element={<SubcategoriesPage />} />
           <Route path="/orders" element={<OrdersPage />} />
           <Route path="/customers" element={<CustomersPage />} />
           <Route path="/settings" element={<SettingsPage />} />

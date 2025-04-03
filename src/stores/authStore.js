@@ -64,6 +64,36 @@ const useAuthStore = create(
           throw new Error("Failed to fetch profile");
         }
       },
+      
+      // Verify authentication status - call this when app loads or to verify token
+      checkAuth: async () => {
+        // If we're not authenticated in state, no need to check
+        if (!get().isAuthenticated && !get().admin) {
+          return false;
+        }
+        
+        try {
+          // Silent API call to check auth status
+          const response = await api.get("/auth/check", { 
+            // Don't show errors for this check
+            validateStatus: () => true
+          });
+          
+          // If successful, we're authenticated
+          const isValid = response.status === 200;
+          
+          // Update auth state if needed
+          if (!isValid && get().isAuthenticated) {
+            set({ isAuthenticated: false, admin: null });
+          }
+          
+          return isValid;
+        } catch (error) {
+          // If request fails entirely, we're not authenticated
+          set({ isAuthenticated: false, admin: null });
+          return false;
+        }
+      },
 
       // Change password
       changePassword: async (currentPassword, newPassword) => {

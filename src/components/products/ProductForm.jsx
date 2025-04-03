@@ -11,6 +11,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
+import ImageUpload from "@/components/ui/ImageUpload";
 
 const ProductForm = ({
   initialData,
@@ -20,8 +22,23 @@ const ProductForm = ({
   categories,
   subcategories,
 }) => {
-  const [formData, setFormData] = useState(initialData);
+  // Initialize form data with proper handling for images
+  const [formData, setFormData] = useState({
+    ...initialData,
+    // Ensure images is always a valid array with proper image objects only
+    images: Array.isArray(initialData.images) 
+      ? initialData.images.filter(img => 
+          img && typeof img === 'object' && img.url && img.public_id
+        )
+      : []
+  });
   const [availableSubcategories, setAvailableSubcategories] = useState([]);
+  const [uploading, setUploading] = useState(false);
+
+  // Log initial state for debugging
+  useEffect(() => {
+    console.log("Initial images state:", formData.images);
+  }, []);
 
   useEffect(() => {
     if (formData.category && subcategories) {
@@ -32,9 +49,24 @@ const ProductForm = ({
     }
   }, [formData.category, subcategories]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    setUploading(true);
+    
+    try {
+      // Create form data object for submission
+      const submissionData = {
+        ...formData
+      };
+      
+      await onSubmit(submissionData);
+    } catch (error) {
+      toast.error("Error submitting form", {
+        description: error.message
+      });
+    } finally {
+      setUploading(false);
+    }
   };
 
   const handleFieldChange = (field, value) => {
@@ -44,6 +76,13 @@ const ProductForm = ({
       }
       return { ...prev, [field]: value };
     });
+  };
+
+  const handleImagesChange = (newImages) => {
+    setFormData(prev => ({
+      ...prev,
+      images: newImages
+    }));
   };
 
   // Find the category name for display
@@ -93,17 +132,23 @@ const ProductForm = ({
             required
           />
         </div>
-        <div className="grid grid-cols-4 items-center gap-4">
-          <Label htmlFor="images" className="text-right">
-            Image URL
+        
+        {/* Image Upload Section */}
+        <div className="grid grid-cols-4 items-start gap-4">
+          <Label htmlFor="images" className="text-right mt-2">
+            Images
           </Label>
-          <Input
-            id="images"
-            value={formData.images?.[0] || ""}
-            onChange={(e) => handleFieldChange("images", [e.target.value])}
-            className="col-span-3"
-          />
+          <div className="col-span-3">
+            <ImageUpload
+              value={formData.images || []}
+              onChange={handleImagesChange}
+              disabled={uploading}
+              maxFiles={5}
+              folder="products"
+            />
+          </div>
         </div>
+        
         <div className="grid grid-cols-4 items-center gap-4">
           <Label htmlFor="category" className="text-right">
             Category
@@ -113,7 +158,9 @@ const ProductForm = ({
             onValueChange={(value) => handleFieldChange("category", value)}
           >
             <SelectTrigger className="col-span-3">
-              {categoryName || "Select category"}
+              <SelectValue placeholder="Select category">
+                {categoryName || "Select category"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {categories?.map((category) => (
@@ -134,7 +181,9 @@ const ProductForm = ({
               onValueChange={(value) => handleFieldChange("subcategory", value)}
             >
               <SelectTrigger className="col-span-3">
-                {subcategoryName || "Select subcategory"}
+                <SelectValue placeholder="Select subcategory">
+                  {subcategoryName || "Select subcategory"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {availableSubcategories.map((subcategory) => (
@@ -199,7 +248,9 @@ const ProductForm = ({
         <Button type="button" variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button type="submit">{isEdit ? "Save Changes" : "Add Product"}</Button>
+        <Button type="submit" disabled={uploading}>
+          {uploading ? "Uploading..." : isEdit ? "Save Changes" : "Add Product"}
+        </Button>
       </SheetFooter>
     </form>
   );

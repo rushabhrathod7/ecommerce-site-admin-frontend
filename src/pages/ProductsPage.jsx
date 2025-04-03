@@ -8,6 +8,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
+  SheetDescription,
 } from "@/components/ui/sheet";
 
 import SearchInput from "@/components/products/SearchInput";
@@ -224,6 +225,9 @@ const ProductsPage = () => {
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Add New Product</SheetTitle>
+            <SheetDescription>
+              Fill in the details below to add a new product to your inventory.
+            </SheetDescription>
           </SheetHeader>
           <ProductForm
             initialData={emptyProduct}
@@ -241,6 +245,9 @@ const ProductsPage = () => {
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader>
             <SheetTitle>Edit Product</SheetTitle>
+            <SheetDescription>
+              Update the details of your selected product.
+            </SheetDescription>
           </SheetHeader>
           {selectedProduct && (
             <ProductForm
