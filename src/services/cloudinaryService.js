@@ -16,7 +16,7 @@ export const uploadImage = async (imageFile, folder = 'products') => {
       formData.append('folder', folder);
     }
     
-    const response = await api.post('/upload', formData, {
+    const response = await api.post('/uploads', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       withCredentials: true
     });
@@ -78,7 +78,7 @@ export const deleteImage = async (publicId) => {
 
     console.log('Deleting image with ID:', publicId);
     
-    const response = await api.delete('/upload', {
+    const response = await api.delete('/uploads', {
       data: { public_id: publicId },
       headers: {
         'Content-Type': 'application/json'

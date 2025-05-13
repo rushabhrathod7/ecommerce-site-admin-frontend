@@ -46,7 +46,6 @@ import {
 import { toast, Toaster } from "sonner";
 import ImageUpload from "@/components/ui/ImageUpload";
 import api from "@/services/api";
-import axios from "axios";
 
 const ProductForm = React.memo(
   ({ initialData, onSubmit, onClose, isEdit, categories, subcategories }) => {
@@ -306,15 +305,6 @@ const ProductsPage = () => {
     isAvailable: true,
   };
 
-  // Create axios instance
-  const api = axios.create({
-    baseURL: "http://localhost:5000/api",
-    timeout: 10000,
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
   // Fetch products
   const fetchProducts = async (
     page = 1,
@@ -324,10 +314,10 @@ const ProductsPage = () => {
   ) => {
     setLoading(true);
     try {
-      let url = `/products?page=${page}&limit=${limit}&sort=${sort}`;
+      let url = `/admin/products?page=${page}&limit=${limit}&sort=${sort}`;
 
       if (search) {
-        url = `/products/search?q=${search}`;
+        url = `/admin/products/search?q=${search}`;
       }
 
       const response = await api.get(url);
@@ -356,7 +346,7 @@ const ProductsPage = () => {
   // Fetch categories
   const fetchCategories = async () => {
     try {
-      const response = await api.get("/categories");
+      const response = await api.get("/admin/categories");
       setCategories(response.data.data);
     } catch (err) {
       const errorMessage =
@@ -372,7 +362,7 @@ const ProductsPage = () => {
   // Fetch subcategories
   const fetchSubcategories = async () => {
     try {
-      const response = await api.get("/subcategories");
+      const response = await api.get("/admin/subcategories");
       setSubcategories(response.data.data);
     } catch (err) {
       const errorMessage =
@@ -418,7 +408,7 @@ const ProductsPage = () => {
   // Handle add product
   const handleAddProduct = async (formData) => {
     try {
-      const response = await api.post("/products", formData);
+      const response = await api.post("/admin/products", formData);
 
       // Refetch the products to update the list
       fetchProducts(currentPage, limit, sortField);
@@ -440,7 +430,7 @@ const ProductsPage = () => {
   // Handle edit product
   const handleEditProduct = async (formData) => {
     try {
-      await api.put(`/products/${selectedProduct._id}`, formData);
+      await api.put(`/admin/products/${selectedProduct._id}`, formData);
 
       // Refetch the products to update the list
       fetchProducts(currentPage, limit, sortField);
@@ -478,7 +468,7 @@ const ProductsPage = () => {
           throw new Error("Deletion cancelled");
         }
 
-        await api.delete(`/products/${productId}`);
+        await api.delete(`/admin/products/${productId}`);
 
         // Refetch the products to update the list
         await fetchProducts(currentPage, limit, sortField);

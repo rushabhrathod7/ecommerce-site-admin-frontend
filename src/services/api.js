@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api/admin",
+  baseURL: "http://localhost:5000/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",

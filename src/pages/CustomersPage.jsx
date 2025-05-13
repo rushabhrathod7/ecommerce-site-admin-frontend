@@ -23,11 +23,12 @@ const CustomersPage = () => {
 
   const fetchCustomers = async () => {
     try {
-      const response = await api.get("/users");
+      const response = await api.get("/user");
       setCustomers(response.data.data);
       setLoading(false);
     } catch (error) {
-      toast.error("Failed to fetch customers");
+      console.error("Error fetching customers:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch customers");
       setLoading(false);
     }
   };
