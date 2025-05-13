@@ -75,9 +75,9 @@ const Sidebar = () => {
       ],
     },
     {
-      title: "Users",
+      title: "Customers",
       icon: <Users size={20} />,
-      path: "/users",
+      path: "/customers",
     },
     {
       title: "Payments",

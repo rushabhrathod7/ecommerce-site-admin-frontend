@@ -39,24 +39,22 @@ api.interceptors.response.use(
   }
 );
 
-export const fetchProducts = async (
-  page = 1,
-  limit = 10,
-  sort = "-createdAt",
-  search = ""
-) => {
+export const fetchProducts = async (page = 1, limit = 10, sort = "-createdAt", search = "") => {
   try {
-    let url = `/products?page=${page}&limit=${limit}&sort=${sort}`;
-
-    if (search) {
-      url = `/products/search?q=${search}`;
-    }
-
-    const response = await api.get(url);
+    const response = await api.get("/products", {
+      params: {
+        page,
+        limit,
+        sort,
+        search,
+      },
+    });
     return response.data;
   } catch (err) {
     const errorMessage =
-      err.response?.data?.message || err.message || "Failed to fetch products";
+      err.response?.data?.message ||
+      err.message ||
+      "Failed to fetch products";
     toast.error("Error", {
       description: errorMessage,
     });

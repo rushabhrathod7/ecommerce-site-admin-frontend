@@ -20,7 +20,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
 import AuthLayout from "./pages/auth/AuthLayout";
 
-// import { Toaster } from "@/components/ui/sonner";
+import { Toaster } from "@/components/ui/sonner";
 
 // Protected route component using Zustand auth store
 const ProtectedRoute = ({ children }) => {
@@ -50,7 +50,7 @@ const ProtectedRoute = ({ children }) => {
 function App() {
   return (
     <Router>
-      {/* <Toaster /> */}
+      <Toaster />
       <Routes>
         {/* Auth routes */}
         <Route element={<AuthLayout />}>
