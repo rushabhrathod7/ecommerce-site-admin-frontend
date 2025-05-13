@@ -3,7 +3,7 @@ import axios from "axios";
 import { toast } from "sonner";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api",
+  baseURL: "http://localhost:5000/api/admin",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -14,7 +14,15 @@ const api = axios.create({
 // Add a request interceptor to include auth token from cookies
 api.interceptors.request.use(
   (config) => {
-    // If you need to add additional logic for auth, do it here
+    // Get the token from cookies
+    const token = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('admin_token='))
+      ?.split('=')[1];
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -24,13 +32,9 @@ api.interceptors.request.use(
 
 // Add a response interceptor to handle auth errors
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    // Handle 401 Unauthorized errors
     if (error.response && error.response.status === 401) {
-      // You can redirect to login or show a specific message
       toast.error("Authentication Required", {
         description: "Please log in to continue",
       });
@@ -49,6 +53,11 @@ export const fetchProducts = async (page = 1, limit = 10, sort = "-createdAt", s
         search,
       },
     });
+    
+    if (!response.data.success || !Array.isArray(response.data.data)) {
+      throw new Error('Invalid response format from server');
+    }
+    
     return response.data;
   } catch (err) {
     const errorMessage =
